@@ -158,7 +158,7 @@ export const SettingsPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mt-16 p-2">
       <div>
         <h1 className="text-3xl font-bold">Configurações do Sistema</h1>
         <p className="text-muted-foreground">
@@ -166,8 +166,8 @@ export const SettingsPage = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="general" className="space-y-6 ">
+        <TabsList className="justify-around flex">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Geral
@@ -175,10 +175,6 @@ export const SettingsPage = () => {
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Usuários
-          </TabsTrigger>
-          <TabsTrigger value="integrations" className="flex items-center gap-2">
-            <Database className="w-4 h-4" />
-            Integrações
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="w-4 h-4" />
@@ -364,89 +360,6 @@ export const SettingsPage = () => {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="integrations" className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold">Integrações Disponíveis</h3>
-            <p className="text-sm text-muted-foreground">
-              Configure integrações com serviços externos
-            </p>
-          </div>
-
-          <div className="grid gap-4">
-            {integrations.map((integration) => (
-              <Card key={integration.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
-                        {integration.type === 'database' && <Database className="w-5 h-5" />}
-                        {integration.type === 'email' && <Mail className="w-5 h-5" />}
-                        {integration.type === 'sms' && <Bell className="w-5 h-5" />}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium">{integration.name}</h4>
-                          {getIntegrationBadge(integration.status)}
-                        </div>
-                        <p className="text-sm text-muted-foreground">{integration.description}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      {integration.status === 'connected' ? (
-                        <>
-                          <Button variant="outline" size="sm">
-                            <Settings className="w-3 h-3 mr-1" />
-                            Configurar
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <RefreshCw className="w-3 h-3" />
-                          </Button>
-                        </>
-                      ) : (
-                        <Button size="sm">
-                          <Link className="w-3 h-3 mr-1" />
-                          Conectar
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Key className="w-5 h-5" />
-                Chaves de API
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="supabase-url">Supabase URL</Label>
-                <Input
-                  id="supabase-url"
-                  placeholder="https://seu-projeto.supabase.co"
-                />
-              </div>
-              <div>
-                <Label htmlFor="supabase-key">Supabase Anon Key</Label>
-                <Input
-                  id="supabase-key"
-                  type="password"
-                  placeholder="sua-chave-anonima"
-                />
-              </div>
-              <Button>
-                <Save className="w-4 h-4 mr-2" />
-                Salvar Chaves
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
