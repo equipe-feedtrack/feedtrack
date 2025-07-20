@@ -11,31 +11,39 @@ import { CustomersPage } from "./pages/CustomersPage";
 import { CampaignsPage } from "./pages/CampaignsPage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { FeedbacksPage } from "./pages/FeedbacksPage"; // 👈 1. IMPORTA A NOVA PÁGINA
 import NotFound from "./pages/NotFound";
 import { Login } from "./pages/Login";
 import { RecuperarSenha } from "./pages/ResetPassword";
 import { LandingPage } from "./pages/LandingPage";
+import { CustomerProvider } from "./contexts/CustomerContext";
+import { ProductProvider } from "./contexts/ProductContext";
+import { ProductsPage } from "./pages/ProdutosPage";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <CustomerProvider>
+        <ProductProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
         <Routes>
           {/* 🔓 Rotas públicas */}
-          <Route path="/home" element={<LandingPage />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/recuperar-senha" element={<RecuperarSenha />} />
 
             {/* 🔐 Rotas com layout e sidebar */}
             <Route element={<SidebarWrapper />}>
-              <Route path="/" element={<Index />} />
+              <Route path="/home" element={<Index />} />
               <Route path="/customers" element={<CustomersPage />} />
               <Route path="/campaigns" element={<CampaignsPage />} />
+              <Route path="/feedbacks" element={<FeedbacksPage />} />
+              <Route path="/products" element={<ProductsPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="*" element={<NotFound />} />
@@ -43,6 +51,8 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+        </ProductProvider>
+      </CustomerProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

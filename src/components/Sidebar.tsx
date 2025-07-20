@@ -1,16 +1,21 @@
-import { Link, useLocation } from "react-router-dom";
-import { BarChart3, Users, MessageSquare, Settings, FileBarChart, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { BarChart3, Users, MessageSquare, Settings, FileBarChart, LogOut, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+
+
 
 const getNavigation = (isAdmin: boolean) => {
   const baseNavigation = [
     { name: "Clientes", href: "/customers", icon: Users },
     { name: "Campanhas", href: "/campaigns", icon: MessageSquare },
+    { name: "Feedbacks", href: "/feedbacks", icon: Star },
+    {name: "Produtos", href: "/products", icon: Star }, // 👈 1. Adiciona a rota de produtos
+
   ];
 
   const adminNavigation = [
-    { name: "Dashboard", href: "/", icon: BarChart3 },
+    { name: "Dashboard", href: "/home", icon: BarChart3 },
     ...baseNavigation,
     { name: "Relatórios", href: "/reports", icon: FileBarChart },
     { name: "Configurações", href: "/settings", icon: Settings },
@@ -22,7 +27,14 @@ const getNavigation = (isAdmin: boolean) => {
 export const Sidebar = ({onClose}) => {
   const location = useLocation();
   const { isAdmin, isEmployee, user, logout } = useAuth();
+   const navigate = useNavigate(); // 👈 necessário para redirecionar
   const navigation = getNavigation(isAdmin || user?.role === "master");
+
+    const handleLogout = () => {
+    logout();        // limpa o estado do usuário
+    onClose?.();     // fecha o menu lateral (caso esteja aberto)
+    navigate("/login"); // 👈 redireciona corretamente para tela de login
+  };
 
   return (
     <div className="w-64 bg-card border-r h-screen sticky top-0 flex flex-col">
