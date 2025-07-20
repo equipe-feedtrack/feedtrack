@@ -14,6 +14,7 @@ import { SettingsPage } from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import { Login } from "./pages/Login";
 import { RecuperarSenha } from "./pages/ResetPassword";
+import { LandingPage } from "./pages/LandingPage";
 
 const queryClient = new QueryClient();
 
@@ -24,10 +25,11 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            {/* 🔓 Rotas públicas */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+        <Routes>
+          {/* 🔓 Rotas públicas */}
+          <Route path="/home" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/recuperar-senha" element={<RecuperarSenha />} />
 
             {/* 🔐 Rotas com layout e sidebar */}
             <Route element={<SidebarWrapper />}>
