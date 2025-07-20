@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DateRange } from "react-day-picker";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { 
   BarChart3, Download, Calendar as CalendarIcon, 
   TrendingUp, TrendingDown, Star, MessageSquare,
-  Users, Eye, Filter
+  Users, Eye, Filter, Lock
 } from "lucide-react";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -35,9 +37,17 @@ interface TopProduct {
 
 export const ReportsPage = () => {
   const { toast } = useToast();
+  const { isAdmin, user } = useAuth();
+  const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState("last30days");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [reportType, setReportType] = useState("overview");
+
+  useEffect(() => {
+    if (!isAdmin && user?.role !== "master") {
+      navigate("/");
+    }
+  }, [isAdmin, user, navigate]);
 
   // Dados simulados para demonstração
   const reportData: ReportData = {
@@ -91,6 +101,22 @@ export const ReportsPage = () => {
         return <div className="w-4 h-4" />;
     }
   };
+
+  if (!isAdmin && user?.role !== "master") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <Lock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <CardTitle>Acesso Restrito</CardTitle>
+            <p className="text-muted-foreground">
+              Esta página é exclusiva para administradores
+            </p>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 mt-16 p-2">
