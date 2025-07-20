@@ -13,13 +13,14 @@ export const Login = () => {
   useEffect(() => {
     if (isAuthenticated) {
       if (isAdmin || isEmployee) {
-        navigate("/", { replace: true });
+        navigate("/home", { replace: true });
       } else if (isMaster) {
         navigate("/master", { replace: true });
       }
     }
   }, [isAuthenticated, isAdmin, isEmployee, isMaster, navigate]);
 
+  // A função agora é 'async' para poder usar 'await'
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAlerta(null);
@@ -33,11 +34,17 @@ export const Login = () => {
       return;
     }
 
-    const success = await login(usuario, password);
+    // Usamos um bloco 'try...catch' para lidar com sucesso e erro da API
+    try {
+      // 1. 'await' faz com que o código espere a função 'login' terminar
+      await login(usuario, password);
 
-    if (success) {
+      // 2. Se a linha de cima não der erro, o login foi um sucesso!
       setAlerta({ tipo: "success", mensagem: "Login realizado com sucesso! Redirecionando..." });
-    } else {
+      // O useEffect acima cuidará do redirecionamento automático.
+
+    } catch (error) {
+      // 3. Se 'login' lançar um erro (ex: senha errada), ele é capturado aqui.
       setAlerta({ tipo: "danger", mensagem: "Credenciais inválidas. Verifique seu usuário e senha." });
     }
   };

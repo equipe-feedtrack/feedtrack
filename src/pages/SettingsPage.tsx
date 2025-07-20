@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { 
   Settings, Users, Database, Bell, Mail, 
   Key, Shield, Plus, Edit, Trash2, 
-  Link, Save, RefreshCw 
+  Link, Save, RefreshCw, Lock
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,6 +37,8 @@ interface Integration {
 
 export const SettingsPage = () => {
   const { toast } = useToast();
+  const { isAdmin, user } = useAuth();
+  const navigate = useNavigate();
   
   // Estados para configurações
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -43,6 +47,12 @@ export const SettingsPage = () => {
   const [feedbackDelay, setFeedbackDelay] = useState("24");
   const [companyName, setCompanyName] = useState("Minha Empresa");
   const [companyEmail, setCompanyEmail] = useState("contato@minhaempresa.com");
+
+  useEffect(() => {
+    if (!isAdmin && user?.role !== "master") {
+      navigate("/");
+    }
+  }, [isAdmin, user, navigate]);
   
   // Estados para usuários
   const [users, setUsers] = useState<User[]>([
@@ -156,6 +166,22 @@ export const SettingsPage = () => {
       ? <Badge className="bg-success text-success-foreground">Conectado</Badge>
       : <Badge variant="outline">Desconectado</Badge>;
   };
+
+  if (!isAdmin && user?.role !== "master") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <Lock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <CardTitle>Acesso Restrito</CardTitle>
+            <p className="text-muted-foreground">
+              Esta página é exclusiva para administradores
+            </p>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 mt-16 p-2">
