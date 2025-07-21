@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { BarChart3, Users, MessageSquare, Settings, FileBarChart, LogOut, Star } from "lucide-react";
+import { BarChart3, Users, MessageSquare, Settings, FileBarChart, LogOut, Star, FolderKanban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -17,6 +17,7 @@ const getNavigation = (isAdmin: boolean) => {
   const adminNavigation = [
     { name: "Dashboard", href: "/home", icon: BarChart3 },
     ...baseNavigation,
+     { name: "Editor de Formulário", href: "/form-builder", icon: FolderKanban },
     { name: "Relatórios", href: "/reports", icon: FileBarChart },
     { name: "Configurações", href: "/settings", icon: Settings },
   ];
