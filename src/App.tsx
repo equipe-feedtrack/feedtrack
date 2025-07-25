@@ -22,6 +22,7 @@ import { ProductsPage } from "./pages/ProdutosPage";
 import { FormProvider } from "./contexts/FormContext";
 import { AvaliacaoPage } from "./pages/AvaliacaoPage";
 import { FormEditor } from "./components/FormEditor";
+import { Register } from "./pages/Register";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
                   {/* 🔓 Rotas públicas */}
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
                   <Route path="/recuperar-senha" element={<RecuperarSenha />} />
                   <Route path="/avaliacao" element={<AvaliacaoPage />} />
                   
