@@ -1,65 +1,113 @@
 // src/contexts/FormContext.tsx
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import { toast } from "@/hooks/use-toast";
-import { Package, Users, Store, ShoppingCart } from "lucide-react";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import api from '../lib/api';
+import { useToast } from "@/hooks/use-toast";
 
-export type FormSection = {
+// Interfaces baseadas na sua API
+export interface Pergunta {
   id: string;
-  title: string;
-  icon: 'Package' | 'Users' | 'Store' | 'ShoppingCart';
-  hasRating: boolean; // 👈 NOVO
-  ratingPrompt: string;
-  starLabels: { [key: number]: string };
-  hasComment: boolean; // 👈 NOVO
-  commentPrompt: string;
-  commentPlaceholder: string;
+  texto: string;
+  tipo: 'nota' | 'texto' | 'multipla_escolha';
+  opcoes?: string[];
+  ativo?: boolean; // <<< NOVO
+  dataCriacao?: string; // <<< NOVO
+  dataAtualizacao?: string; // <<< NOVO
+}
+
+export interface Formulario {
+  id: string;
+  titulo: string;
+  descricao: string;
+  ativo: boolean;
+  perguntas: Pergunta[];
+}
+
+export type NewQuestionData = Omit<Pergunta, 'id' | 'ativo' | 'dataCriacao' | 'dataAtualizacao'>;
+export type NewFormData = {
+  titulo: string;
+  descricao: string;
+  idsPerguntas: string[];
 };
 
-// ... (interface FormContextType permanece a mesma por enquanto)
+interface FormContextType {
+  formularios: Formulario[];
+  perguntas: Pergunta[];
+  loading: boolean;
+  addForm: (formData: NewFormData) => Promise<Formulario | void>;
+  addQuestion: (questionData: NewQuestionData) => Promise<Pergunta | void>;
+  // Adicione aqui outras funções como update/delete se necessário
+}
 
-const initialSections: FormSection[] = [
-  { id: 'product', title: 'Qualidade do Produto', icon: 'Package', hasRating: true, ratingPrompt: 'Como você avalia este produto?', starLabels: { 1: 'Péssimo', 2: 'Ruim', 3: 'Regular', 4: 'Bom', 5: 'Excelente' }, hasComment: true, commentPrompt: 'Comentários sobre o produto (opcional)', commentPlaceholder: 'Fale sobre a qualidade, funcionalidades, design...' },
-  { id: 'service', title: 'Atendimento', icon: 'Users', hasRating: true, ratingPrompt: 'Como foi o atendimento da nossa equipe?', starLabels: { 1: 'Muito Ruim', 2: 'Ruim', 3: 'Regular', 4: 'Bom', 5: 'Ótimo' }, hasComment: true, commentPrompt: 'Comentários sobre o atendimento (opcional)', commentPlaceholder: 'Fale sobre a cordialidade, agilidade...' },
-];
-
-const FormContext = createContext<any | undefined>(undefined); // Simplificado para 'any'
+const FormContext = createContext<FormContextType | undefined>(undefined);
 
 export const FormProvider = ({ children }: { children: ReactNode }) => {
-  const [formSections, setFormSections] = useState<FormSection[]>(initialSections);
+  const [formularios, setFormularios] = useState<Formulario[]>([]);
+  const [perguntas, setPerguntas] = useState<Pergunta[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const updateSection = (id: string, data: Partial<Omit<FormSection, 'id'>>) => {
-    setFormSections(current => current.map(section =>
-      section.id === id ? { ...section, ...data } : section
-    ));
-  };
-
-  const addSection = () => {
-    const newSection: FormSection = {
-      id: new Date().toISOString(), title: 'Nova Seção', icon: 'ShoppingCart', hasRating: true, ratingPrompt: 'Qual a sua avaliação?', starLabels: { 1: '1', 2: '2', 3: '3', 4: '4', 5: '5' }, hasComment: true, commentPrompt: 'Comentários (opcional)', commentPlaceholder: 'Deixe seu comentário...'
+  // Efeito para carregar formulários e perguntas da API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Assumindo que existem rotas para listar todos os formulários e perguntas
+        const [formsRes, questionsRes] = await Promise.all([
+          api.get('/formularios'),
+          api.get('/perguntas') // Nota: Esta rota '/perguntas' é uma suposição baseada na sua necessidade.
+        ]);
+        setFormularios(formsRes.data);
+        setPerguntas(questionsRes.data);
+      } catch (error) {
+        console.error("Erro ao buscar dados de formulários:", error);
+        toast({
+          title: "Erro de Rede",
+          description: "Não foi possível carregar os dados.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
     };
-    setFormSections(current => [...current, newSection]);
-  };
-  
-  const deleteSection = (id: string) => {
-    if (formSections.length <= 1) {
-      toast({ title: "Ação inválida", description: "O formulário deve ter pelo menos uma seção.", variant: "destructive" });
-      return;
+    fetchData();
+  }, [toast]);
+
+  const addForm = async (formData: NewFormData) => {
+    try {
+      const response = await api.post('/formulario', formData);
+      const newForm = response.data;
+      setFormularios(current => [...current, newForm]);
+      toast({ title: "Sucesso", description: "Formulário criado com sucesso!" });
+      return newForm;
+    } catch (error) {
+      console.error("Erro ao criar formulário:", error);
+      toast({ title: "Erro", description: "Não foi possível criar o formulário.", variant: "destructive" });
     }
-    setFormSections(current => current.filter(section => section.id !== id));
+  };
+
+  const addQuestion = async (questionData: NewQuestionData) => {
+    try {
+      const response = await api.post('/pergunta', questionData);
+      const newQuestion = response.data;
+      setPerguntas(current => [...current, newQuestion]);
+      toast({ title: "Sucesso", description: "Nova pergunta adicionada!" });
+      return newQuestion;
+    } catch (error) {
+      console.error("Erro ao criar pergunta:", error);
+      toast({ title: "Erro", description: "Não foi possível criar a pergunta.", variant: "destructive" });
+    }
   };
 
   return (
-    <FormContext.Provider value={{ formSections, updateSection, addSection, deleteSection }}>
+    <FormContext.Provider value={{ formularios, perguntas, loading, addForm, addQuestion }}>
       {children}
     </FormContext.Provider>
   );
 };
 
-export const useForm = (): any => {
+export const useForm = (): FormContextType => {
   const context = useContext(FormContext);
   if (!context) throw new Error("useForm must be used within a FormProvider");
   return context;
 };
-
-export const iconMap: Record<string, React.ElementType> = { Package, Users, Store, ShoppingCart };

@@ -1,4 +1,4 @@
-// src/components/FormManagement.tsx
+// src/pages/FormsPage.tsx
 
 import React, { useState } from "react";
 import { useForm, Pergunta } from "@/contexts/FormContext";
@@ -65,8 +65,8 @@ const CreateQuestionModal = ({ onQuestionCreated }: { onQuestionCreated: (newQue
     );
 };
 
-// Componente Principal de Gestão de Formulários (Substitui o FormEditor)
-export const FormEditor = () => {
+// Página Principal de Formulários
+export const FormsPage = () => {
     const { formularios, perguntas, addForm, loading } = useForm();
     const { toast } = useToast();
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -90,7 +90,7 @@ export const FormEditor = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="p-4 md:p-8 space-y-6">
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold">Gestão de Formulários</h1>
@@ -158,9 +158,10 @@ export const FormEditor = () => {
                                         <CardDescription>{form.descricao}</CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        <p className="text-sm font-semibold mb-2">Perguntas ({form.perguntas.length}):</p>
+                                        {/* <<< CORRIGIDO: Adicionada verificação para `form.perguntas` */}
+                                        <p className="text-sm font-semibold mb-2">Perguntas ({(form.perguntas || []).length}):</p>
                                         <ul className="list-disc pl-5 text-sm text-muted-foreground">
-                                            {form.perguntas.map(p => <li key={p.id}>{p.texto}</li>)}
+                                            {(form.perguntas || []).map(p => <li key={p.id}>{p.texto}</li>)}
                                         </ul>
                                     </CardContent>
                                 </Card>

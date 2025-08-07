@@ -1,66 +1,148 @@
 // src/contexts/CustomerContext.tsx
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import api from '../lib/api';
+import { useToast } from "@/hooks/use-toast";
+import { Product } from "./ProductContext";
 
-// O tipo 'Customer' deve ser o que você definiu na sua página
-export interface Customer {
-  id: number;
-  name: string;
+export interface Pessoa {
+  id: string;
+  nome: string;
   email: string;
-  phone: string;
-  address: string;
-  registrationDate: string;
-  lastPurchase: string;
-  totalPurchases: number;
-  status: "active" | "inactive";
-  segment: "premium" | "regular" | "new";
+  telefone: string;
+}
+
+export interface Customer {
+  id: string;
+  pessoa: Pessoa;
+  cidade: string;
+  vendedorResponsavel: string;
+  status: string;
+  produtos: Product[];
+  dataCriacao?: string;
+  dataAtualizacao?: string;
+  dataExclusao?: string | null;
+}
+
+export type NewCustomerData = {
+  pessoa: {
+    nome: string;
+    email: string;
+    telefone: string;
+  };
+  cidade: string;
+  vendedorResponsavel: string;
+  idsProdutos: string[];
+};
+
+// <<< NOVO: Tipo para a nova função de gestão de produtos
+type ProductAction = 'add' | 'remove' | 'replace';
+interface ManageProductPayload {
+  action: ProductAction;
+  produtoId?: string; // ID do produto a ser removido ou substituído
+  novoProdutoId?: string; // ID do novo produto para a ação 'replace'
+  idsProdutos?: string[]; // IDs para a ação 'add'
 }
 
 interface CustomerContextType {
   customers: Customer[];
-  addCustomer: (newCustomerData: Omit<Customer, 'id' | 'registrationDate' | 'lastPurchase' | 'totalPurchases' | 'status'>) => Customer;
-  updateCustomer: (updatedCustomer: Customer) => void;
-  deleteCustomer: (id: number) => void;
-  getCustomerById: (id: number) => Customer | undefined;
+  loading: boolean;
+  addCustomer: (newCustomerData: NewCustomerData) => Promise<Customer | void>;
+  updateCustomer: (updatedCustomer: Customer) => Promise<void>;
+  deleteCustomer: (id: string) => Promise<void>;
+  manageProductAssociation: (customerId: string, payload: ManageProductPayload) => Promise<void>;
 }
-
-// O mock inicial deve usar a sua estrutura completa
-const initialCustomers: Customer[] = [
-    { id: 1, name: "Maria Silva", email: "maria.silva@email.com", phone: "(11) 99999-1111", address: "São Paulo, SP", registrationDate: "2024-01-15", lastPurchase: "2024-11-10", totalPurchases: 5, status: "active", segment: "premium" },
-    { id: 2, name: "João Santos", email: "joao.santos@email.com", phone: "(11) 99999-2222", address: "Rio de Janeiro, RJ", registrationDate: "2024-03-20", lastPurchase: "2024-11-08", totalPurchases: 3, status: "active", segment: "regular" },
-    { id: 3, name: "Ana Costa", email: "ana.costa@email.com", phone: "(11) 99999-3333", address: "Belo Horizonte, MG", registrationDate: "2024-11-01", lastPurchase: "2024-11-05", totalPurchases: 1, status: "active", segment: "new" },
-];
 
 const CustomerContext = createContext<CustomerContextType | undefined>(undefined);
 
 export const CustomerProvider = ({ children }: { children: ReactNode }) => {
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const addCustomer = (data: Omit<Customer, 'id' | 'registrationDate' | 'lastPurchase' | 'totalPurchases' | 'status'>) => {
-    const newCustomer: Customer = {
-      id: Math.max(0, ...customers.map(c => c.id)) + 1,
-      ...data,
-      registrationDate: new Date().toISOString().split('T')[0],
-      lastPurchase: "",
-      totalPurchases: 0,
-      status: "active",
-    };
-    setCustomers(current => [...current, newCustomer]);
-    return newCustomer;
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/clientes');
+      setCustomers(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar clientes:", error);
+      toast({
+        title: "Erro de Rede",
+        description: "Não foi possível carregar os clientes.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateCustomer = (updatedCustomer: Customer) => {
-    setCustomers(current => current.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
+  useEffect(() => {
+    fetchCustomers();
+  }, [toast]);
+
+  const addCustomer = async (data: NewCustomerData) => {
+    try {
+      const response = await api.post('/cliente', data); 
+      const newCustomer = response.data;
+      setCustomers(current => [...current, newCustomer]);
+      toast({ title: "Sucesso", description: "Cliente adicionado com sucesso!" });
+      return newCustomer;
+    } catch (error) {
+      console.error("Erro ao adicionar cliente:", error);
+      toast({ title: "Erro ao Adicionar", description: "Não foi possível criar o cliente.", variant: "destructive" });
+    }
+  };
+
+  const updateCustomer = async (updatedCustomer: Customer) => {
+    try {
+      const payload = {
+        pessoa: updatedCustomer.pessoa,
+        cidade: updatedCustomer.cidade,
+        vendedorResponsavel: updatedCustomer.vendedorResponsavel,
+        status: updatedCustomer.status,
+      };
+      await api.put(`/atualizar-cliente/${updatedCustomer.id}`, payload);
+      setCustomers(current => current.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
+    } catch (error) {
+      console.error("Erro ao atualizar cliente:", error);
+      toast({ title: "Erro ao Atualizar", description: "Não foi possível salvar as alterações.", variant: "destructive" });
+      throw error;
+    }
   };
   
-  const deleteCustomer = (id: number) => {
-    setCustomers(current => current.filter(c => c.id !== id));
+  const deleteCustomer = async (id: string) => {
+    const customer = customers.find(c => c.id === id);
+    if (!customer) return;
+    const deactivatedCustomer = { ...customer, status: 'INATIVO' };
+    try {
+      await updateCustomer(deactivatedCustomer);
+      toast({ title: "Sucesso", description: `Cliente "${customer.pessoa.nome}" foi desativado.` });
+    } catch (error) {
+      // O erro já é tratado em updateCustomer
+    }
   };
-  
-  const getCustomerById = (id: number) => customers.find(c => c.id === id);
+
+  // <<< NOVO: Função genérica para gerir produtos de um cliente
+  const manageProductAssociation = async (customerId: string, payload: ManageProductPayload) => {
+    try {
+      // A rota agora é a mesma para todas as ações de produto
+      await api.post(`/cliente/${customerId}/produtos`, payload);
+      // Após a operação, busca novamente a lista de clientes para garantir que os dados estão sincronizados
+      await fetchCustomers(); 
+    } catch (error) {
+      console.error("Erro ao gerir produtos do cliente:", error);
+      toast({
+        title: "Erro na Operação",
+        description: "Não foi possível concluir a operação com os produtos.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
 
   return (
-    <CustomerContext.Provider value={{ customers, addCustomer, updateCustomer, deleteCustomer, getCustomerById }}>
+    <CustomerContext.Provider value={{ customers, loading, addCustomer, updateCustomer, deleteCustomer, manageProductAssociation }}>
       {children}
     </CustomerContext.Provider>
   );

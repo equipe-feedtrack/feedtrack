@@ -3,7 +3,6 @@
 import { useSearchParams } from "react-router-dom";
 import { useCustomer } from "@/contexts/CustomerContext";
 import { useProduct } from "@/contexts/ProductContext";
-import { FeedbackForm } from "@/components/FeedbackForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Importar CardHeader e CardTitle
 import { useEffect, useState } from "react";
 import { ThumbsUp, Package } from "lucide-react"; // Importar ícone
@@ -70,8 +69,6 @@ export const AvaliacaoPage = () => {
           </CardHeader>
         </Card>
         
-        {/* 2. O FeedbackForm agora funciona sozinho, lendo a estrutura do FormContext */}
-        <FeedbackForm />
       </div>
     </div>
   );

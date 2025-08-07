@@ -185,7 +185,7 @@ export const LandingPage = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <Button size="lg" className="text-lg px-8 py-6">
+            <Button size="lg" className="text-lg px-8 py-6" onClick={() => window.location.href = "/login"}>
               Começar Grátis por 14 dias
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
