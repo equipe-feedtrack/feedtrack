@@ -20,10 +20,10 @@ import { CustomerProvider } from "./contexts/CustomerContext";
 import { ProductProvider } from "./contexts/ProductContext";
 import { ProductsPage } from "./pages/ProdutosPage";
 import { FormProvider } from "./contexts/FormContext";
-import { AvaliacaoPage } from "./pages/AvaliacaoPage";
 import { Register } from "./pages/Register";
 import { FormsPage } from "./pages/FormsPage";
 import { CampaignProvider } from "./contexts/CampaignContext";
+import { FeedBackProvider } from "./contexts/FeedBackContext";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +34,7 @@ const App = () => (
         <ProductProvider>
           <FormProvider>
             <CampaignProvider>
+              <FeedBackProvider>
             <TooltipProvider>
               <Toaster />
               <Sonner />
@@ -44,7 +45,6 @@ const App = () => (
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/recuperar-senha" element={<RecuperarSenha />} />
-                  <Route path="/avaliacao" element={<AvaliacaoPage />} />
                   
                   {/* 🔐 Rota de avaliação com query params */}
 
@@ -63,6 +63,7 @@ const App = () => (
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>
+              </FeedBackProvider>
             </CampaignProvider>
           </FormProvider>
         </ProductProvider>

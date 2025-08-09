@@ -64,6 +64,7 @@ export const CampaignsPage = () => {
   >({
     titulo: "",
     descricao: "",
+    canalEnvio: "EMAIL",
     tipoCampanha: "POS_COMPRA",
     segmentoAlvo: "TODOS_CLIENTES",
     dataInicio: new Date().toISOString(),
@@ -121,6 +122,7 @@ export const CampaignsPage = () => {
         titulo: "",
         descricao: "",
         tipoCampanha: "POS_COMPRA",
+        canalEnvio: "EMAIL",
         segmentoAlvo: "TODOS_CLIENTES",
         dataInicio: new Date().toISOString(),
         dataFim: new Date().toISOString(),
@@ -319,6 +321,9 @@ export const CampaignsPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="POS_COMPRA">Pós-Compra</SelectItem>
+                    <SelectItem value="AUTOMATICO">Automático</SelectItem>
+                    <SelectItem value="PROMOCIONAL">Promocional</SelectItem>
+                    <SelectItem value="SATISFACAO">Satisfação</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -335,6 +340,15 @@ export const CampaignsPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="TODOS_CLIENTES">Todos</SelectItem>
+                    <SelectItem value="CLIENTES_REGULARES">
+                      Clientes Regulares
+                    </SelectItem>
+                    <SelectItem value="NOVOS_CLIENTES">
+                      Clientes Regulares
+                    </SelectItem>
+                    <SelectItem value="CLIENTES_PREMIUM">
+                      Clientes Premium
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -406,29 +420,46 @@ export const CampaignsPage = () => {
                   </PopoverContent>
                 </Popover>
               </div>
+              <div className="col-span-2">
+                <Label htmlFor="channel">Canal de Envio</Label>
+                <Select
+                  value={newCampaign.canalEnvio}
+                  onValueChange={(v) =>
+                    setNewCampaign({ ...newCampaign, canalEnvio: v })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um canal..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="WHATSAPP">WhatsApp</SelectItem>
+                    <SelectItem value="EMAIL">Email</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="template">Template da Mensagem *</Label>
+                <Textarea
+                  id="template"
+                  value={newCampaign.templateMensagem}
+                  onChange={(e) =>
+                    setNewCampaign({
+                      ...newCampaign,
+                      templateMensagem: e.target.value,
+                    })
+                  }
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="template">Template da Mensagem *</Label>
-              <Textarea
-                id="template"
-                value={newCampaign.templateMensagem}
-                onChange={(e) =>
-                  setNewCampaign({
-                    ...newCampaign,
-                    templateMensagem: e.target.value,
-                  })
-                }
-              />
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsCreateDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button onClick={handleCreateCampaign}>Criar Campanha</Button>
             </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsCreateDialogOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button onClick={handleCreateCampaign}>Criar Campanha</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -506,7 +537,9 @@ export const CampaignsPage = () => {
                       })
                     }
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="POS_COMPRA">Pós-Compra</SelectItem>
                     </SelectContent>
@@ -523,7 +556,9 @@ export const CampaignsPage = () => {
                       })
                     }
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="TODOS_CLIENTES">Todos</SelectItem>
                     </SelectContent>
@@ -535,16 +570,29 @@ export const CampaignsPage = () => {
                   <Label>Data de Início</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {format(new Date(editingCampaign.dataInicio), "dd/MM/yyyy", { locale: ptBR })}
+                        {format(
+                          new Date(editingCampaign.dataInicio),
+                          "dd/MM/yyyy",
+                          { locale: ptBR }
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
                         selected={new Date(editingCampaign.dataInicio)}
-                        onSelect={(date) => date && setEditingCampaign({ ...editingCampaign, dataInicio: date.toISOString() })}
+                        onSelect={(date) =>
+                          date &&
+                          setEditingCampaign({
+                            ...editingCampaign,
+                            dataInicio: date.toISOString(),
+                          })
+                        }
                         locale={ptBR}
                       />
                     </PopoverContent>
@@ -554,16 +602,29 @@ export const CampaignsPage = () => {
                   <Label>Data de Fim</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {format(new Date(editingCampaign.dataFim), "dd/MM/yyyy", { locale: ptBR })}
+                        {format(
+                          new Date(editingCampaign.dataFim),
+                          "dd/MM/yyyy",
+                          { locale: ptBR }
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
                         selected={new Date(editingCampaign.dataFim)}
-                        onSelect={(date) => date && setEditingCampaign({ ...editingCampaign, dataFim: date.toISOString() })}
+                        onSelect={(date) =>
+                          date &&
+                          setEditingCampaign({
+                            ...editingCampaign,
+                            dataFim: date.toISOString(),
+                          })
+                        }
                         locale={ptBR}
                       />
                     </PopoverContent>

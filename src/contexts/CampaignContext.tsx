@@ -11,6 +11,7 @@ export interface Campanha {
   descricao: string;
   tipoCampanha: string;
   segmentoAlvo: string;
+  canalEnvio: string;
   dataInicio: string;
   dataFim: string;
   templateMensagem: string;
