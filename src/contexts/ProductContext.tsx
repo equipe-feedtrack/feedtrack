@@ -1,48 +1,117 @@
 // src/contexts/ProductContext.tsx
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import api from '../lib/api';
+import { useToast } from "@/hooks/use-toast";
 
-export type Product = { id: number; name: string; category: string; price: number; };
+export interface Product {
+  id: string;
+  nome: string;
+  descricao: string;
+  valor: number;
+  ativo: boolean;
+  dataCriacao?: string;
+  dataAtualizacao?: string;
+  dataExclusao?: string | null;
+}
+
+export type NewProductData = {
+  nome: string;
+  descricao: string;
+  valor: number;
+};
 
 interface ProductContextType {
   products: Product[];
-  addProduct: (name: string, category: string, price: number) => Product;
-  updateProduct: (updatedProduct: Product) => void; // 👈 NOVO
-  deleteProduct: (id: number) => void;             // 👈 NOVO
-  getProductById: (id: number) => Product | undefined;
+  loading: boolean;
+  addProduct: (productData: NewProductData) => Promise<Product | void>;
+  updateProduct: (updatedProduct: Product) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>; // Esta função agora desativa o produto
 }
-
-const mockProducts: Product[] = [
-  { id: 201, name: "Smartphone X", category: "Eletrônicos", price: 2999.90 },
-  { id: 202, name: "Fone de Ouvido Y", category: "Acessórios", price: 399.00 },
-  { id: 203, name: "Carregador Z", category: "Acessórios", price: 120.00 },
-];
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const addProduct = (name: string, category: string, price: number): Product => {
-    const newProduct: Product = { id: Math.random(), name, category, price };
-    setProducts(current => [...current, newProduct]);
-    return newProduct;
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/produtos');
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Erro ao buscar produtos:", error);
+        toast({
+          title: "Erro de Rede",
+          description: "Não foi possível carregar os produtos.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [toast]);
+
+  const addProduct = async (productData: NewProductData) => {
+    try {
+      const response = await api.post('/produto', productData);
+      const newProduct = response.data;
+      setProducts(current => [...current, newProduct]);
+      toast({ title: "Sucesso", description: `Produto "${newProduct.nome}" adicionado!` });
+      return newProduct;
+    } catch (error) {
+      console.error("Erro ao adicionar produto:", error);
+      toast({ title: "Erro", description: "Não foi possível adicionar o produto.", variant: "destructive" });
+    }
+  };
+
+  const updateProduct = async (productToUpdate: Product) => {
+    try {
+      // O payload para a API deve conter todos os campos que podem ser atualizados.
+      const payload = {
+        nome: productToUpdate.nome,
+        descricao: productToUpdate.descricao,
+        valor: productToUpdate.valor,
+        ativo: productToUpdate.ativo,
+        dataExclusao: productToUpdate.dataExclusao,
+      };
+      
+      await api.put(`/atualizar-produto/${productToUpdate.id}`, payload);
+      
+      setProducts(current => 
+        current.map(p => (p.id === productToUpdate.id ? productToUpdate : p))
+      );
+      // Evita mostrar toast de "atualizado" ao desativar/reativar
+      if (productToUpdate.ativo === products.find(p => p.id === productToUpdate.id)?.ativo) {
+         toast({ title: "Sucesso", description: "Produto atualizado com sucesso!" });
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar produto:", error);
+      toast({ title: "Erro", description: "Não foi possível atualizar o produto.", variant: "destructive" });
+    }
   };
   
-  // 👇 NOVA FUNÇÃO DE ATUALIZAÇÃO
-  const updateProduct = (updatedProduct: Product) => {
-    setProducts(current => current.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+  const deleteProduct = async (id: string) => {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+
+    const deactivatedProduct: Product = {
+      ...product,
+      ativo: false,
+      dataExclusao: new Date().toISOString(),
+    };
+    
+    // Reutiliza a função de update para desativar
+    await updateProduct(deactivatedProduct);
+    toast({ title: "Produto Desativado", description: `"${product.nome}" foi movido para os inativos.` });
   };
-  
-  // 👇 NOVA FUNÇÃO DE EXCLUSÃO
-  const deleteProduct = (id: number) => {
-    setProducts(current => current.filter(p => p.id !== id));
-  };
-  
-  const getProductById = (id: number) => products.find(p => p.id === id);
 
   return (
-    <ProductContext.Provider value={{ products, addProduct, updateProduct, deleteProduct, getProductById }}>
+    <ProductContext.Provider value={{ products, loading, addProduct, updateProduct, deleteProduct }}>
       {children}
     </ProductContext.Provider>
   );

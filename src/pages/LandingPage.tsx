@@ -159,7 +159,7 @@ export const LandingPage = () => {
             <Link to="/login">
               <Button variant="outline">Entrar</Button>
             </Link>
-            <Button>Começar Grátis</Button>
+            <Link to={"/register"}><Button>Começar Grátis</Button></Link>
           </nav>
         </div>
       </header>
@@ -185,13 +185,9 @@ export const LandingPage = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <Button size="lg" className="text-lg px-8 py-6">
+            <Button size="lg" className="text-lg px-8 py-6" onClick={() => window.location.href = "/login"}>
               Começar Grátis por 14 dias
               <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6">
-              <Globe className="w-5 h-5 mr-2" />
-              Ver Demo
             </Button>
           </div>
           
@@ -401,14 +397,6 @@ export const LandingPage = () => {
             >
               Começar Grátis Agora
               <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="text-lg px-8 py-6 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
-            >
-              <Smartphone className="w-5 h-5 mr-2" />
-              Agendar Demo
             </Button>
           </div>
           
